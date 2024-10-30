@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>나이스 바이트 계산기</title>
+<style>
+    textarea {
+        font-size: 16px;
+    }
+    body {
+        font-family: Arial, sans-serif;
+        margin: 10px;
+    }
+    .container {
+        max-width: 600px;
+        margin: auto;
+    }
+
+    .output {
+        font-size: 18px;
+        margin-top: 5px;
+        padding: 5px;
+        border: 1px solid #ddd;
+        background-color: #f9f9f9;
+    }
+    .info {
+        font-size: 13px;
+        text-align: right;
+        color:#a2a2a2;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>나이스(NEIS) 바이트 계산기</h2>
+    <button onclick="calculateBytes()">바이트 계산하기</button>
+    <textarea id="inputText" rows="20" style="width:100%;" placeholder="텍스트를 입력하세요."></textarea>
+    <div class="output" id="output">
+        <strong>총 바이트:</strong> <span id="totalBytes">0</span> <br>
+        <strong>총 글자 수:</strong> <span id="total_Ja">0</span> <br>
+        <strong>공백 제외 글자 수:</strong> <span id="NOblank_Ja">0</span> <br>
+        <strong>띄어쓰기 수:</strong> <span id="spaceCount">0</span> <br>
+        <strong>줄바꿈 수:</strong> <span id="newlineCount">0</span> <br>
+        <strong>특수문자 수:</strong> <span id="specialCharCount">0</span> <br>
+        <strong>그 외 목록:</strong> <span id="excludedChars"></span>
+    </div>
+
+    <table style="margin-top: 5px; width: 100%; font-size: 13px;">
+        <tr>
+            <th style="background-color: #333; color: white; padding: 10px;">항목</th>
+            <th style="background-color: #333; color: white; padding: 10px;">자율</th>
+            <th style="background-color: #333; color: white; padding: 10px;">동아리</th>
+            <th style="background-color: #333; color: white; padding: 10px;">진로</th>
+            <th style="background-color: #333; color: white; padding: 10px;">교과</th>
+            <th style="background-color: #333; color: white; padding: 10px;">개인별세특</th>
+        </tr>
+        <tr style="background-color: #f0f0f0;">
+            <td style="padding: 10px; text-align: center;">바이트</td>
+            <td style="padding: 10px; text-align: center;">1500</td>
+            <td style="padding: 10px; text-align: center;">1500</td>
+            <td style="padding: 10px; text-align: center;">2100</td>
+            <td style="padding: 10px; text-align: center;">1500</td>
+            <td style="padding: 10px; text-align: center;">1500</td>
+        </tr>
+    </table>
+
+    <div class="info">
+        <strong>영어,숫자,특수문자,띄어쓰기 1바이트/ 줄바꿈 2바이트/ 한글 3바이트</strong>
+        <br>
+        <strong>총 바이트와 총 글자 수는 '그 외'를 제외한 바이트입니다.</strong>
+        <br>
+        <strong>'그 외'는 삭제하기를 권장합니다.</strong>
+        <br>
+        <strong>2024학년도 고등학교 학교생활기록부 기재요령을 참고하였습니다.</strong>
+    </div>
+    <p style="text-align: center; font-size: 18px;"><strong>수정사항 및 오류 제보: seokwater@gmail.com</strong></p>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const savedText = localStorage.getItem("savedText");
+    if (savedText) {
+        document.getElementById("inputText").value = savedText;
+    }
+});
+
+document.getElementById("inputText").addEventListener("input", function() {
+    localStorage.setItem("savedText", this.value);
+});
+
+function calculateBytes() {
+    const text = document.getElementById("inputText").value;
+    let totalBytes = 0; // 총 바이트 수
+    let total_Ja = 0; // 총 글자 수
+    let NOblank_Ja = 0; // 공백 제외 글자 수
+    let spaceCount = 0; // 띄어쓰기
+    let newlineCount = 0; // 줄바꿈
+    let specialCharCount = 0; // 특수문자
+    let excludedChars = [];
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1] || '';
+
+        if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(char)) { // 한국어
+            total_Ja++;
+            NOblank_Ja++;
+            totalBytes += 3;
+        } else if (/[a-zA-Z]/.test(char)) { // 영어
+            NOblank_Ja++;
+            total_Ja++;
+            totalBytes += 1;
+        } else if (/[0-9]/.test(char)) { // 숫자
+            NOblank_Ja++;
+            total_Ja++;
+            totalBytes += 1;
+        } else if (char === ' ') { // 띄어쓰기
+            spaceCount++;
+            total_Ja++;
+            totalBytes += 1;
+        } else if (char === '\n') { // 줄바꿈
+            newlineCount++;
+            total_Ja++;
+            totalBytes += 2;
+        } else if (/[\{\}\[\]\/?.,;:|\)*~`!^\-_+<>@\#$%&\\\=\(\'\"]/.test(char)) { // 특수문자
+            specialCharCount++;
+            NOblank_Ja++;
+            total_Ja++;
+            totalBytes += 1;
+        } else {
+            excludedChars.push(char);
+            if (/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣a-zA-Z0-9 \n]/.test(nextChar)) {
+                excludedChars.push(", ");
+            }
+        }
+    }
+
+    document.getElementById("totalBytes").innerText = totalBytes;
+    document.getElementById("spaceCount").innerText = spaceCount;
+    document.getElementById("newlineCount").innerText = newlineCount;
+    document.getElementById("specialCharCount").innerText = specialCharCount;
+    document.getElementById("excludedChars").innerText = excludedChars.join("");
+    document.getElementById("total_Ja").innerText = total_Ja;
+    document.getElementById("NOblank_Ja").innerText = NOblank_Ja;
+}
+</script>
+
+</body>
+</html>
